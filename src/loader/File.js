@@ -403,12 +403,13 @@ var File = new Class({
      * if no retry attempts remain.
      *
      * @method Phaser.Loader.File#onError
+     * @fires Phaser.Loader.Events#FILE_LOAD_RETRY
      * @since 3.0.0
      *
      * @param {XMLHttpRequest} xhr - The XMLHttpRequest that caused this onerror event.
      * @param {ProgressEvent} event - The DOM ProgressEvent that resulted from this error.
      */
-    onError: function ()
+    onError: function (xhr, event)
     {
         this.resetXHR();
 
@@ -417,6 +418,8 @@ var File = new Class({
             var retryDelay = Math.min(Math.pow(2, this.retries) * 100, 5000); // ms
 
             this.retries++;
+
+            this.loader.emit(Events.FILE_LOAD_RETRY, this, event, this.retries);
 
             setTimeout(this.load.bind(this), retryDelay);
         }

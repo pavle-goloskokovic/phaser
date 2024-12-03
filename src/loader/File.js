@@ -373,7 +373,7 @@ var File = new Class({
 
         this.resetXHR();
 
-        this.loader.nextFile(this, success);
+        this.loader.nextFile(this, success, event);
     },
 
     /**
@@ -425,7 +425,7 @@ var File = new Class({
         }
         else
         {
-            this.loader.nextFile(this, false);
+            this.loader.nextFile(this, false, event);
         }
     },
 

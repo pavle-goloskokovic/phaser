@@ -2,7 +2,9 @@
 
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+// const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+
+const path = `${__dirname}/../dist/`;
 
 module.exports = [
     {
@@ -12,16 +14,18 @@ module.exports = [
         context: `${__dirname}/../src/`,
 
         entry: {
-            phaser: './phaser.js',
-            'phaser.min': './phaser.js',
-            'phaser-arcade-physics': './phaser-arcade-physics.js',
-            'phaser-arcade-physics.min': './phaser-arcade-physics.js',
-            'phaser-ie9': './phaser-ie9.js',
-            'phaser-ie9.min': './phaser-ie9.js'
+            // phaser: './phaser.js',
+            // 'phaser.min': './phaser.js',
+            // 'phaser-arcade-physics': './phaser-arcade-physics.js',
+            // 'phaser-arcade-physics.min': './phaser-arcade-physics.js',
+            // 'phaser-ie9': './phaser-ie9.js',
+            // 'phaser-ie9.min': './phaser-ie9.js'
+            'phaser-custom': './phaser-core.js',
+            'phaser-custom.min': './phaser-core.js',
         },
 
         output: {
-            path: `${__dirname}/../dist/`,
+            path,
             filename: '[name].js',
             globalObject: 'this',
             library: {
@@ -64,10 +68,10 @@ module.exports = [
                 "typeof FEATURE_SOUND": JSON.stringify(true)
             }),
 
-            new CleanWebpackPlugin()
+            // new CleanWebpackPlugin()
         ]
     },
-    {
+    /*{
         experiments: {
             outputModule: true,
         },
@@ -84,7 +88,7 @@ module.exports = [
         },
 
         output: {
-            path: `${__dirname}/../dist/`,
+            path,
             filename: '[name].js',
             library: {
                 type: 'module'
@@ -124,5 +128,5 @@ module.exports = [
                 "typeof FEATURE_SOUND": JSON.stringify(true)
             })
         ]
-    }
+    }*/
 ];

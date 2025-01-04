@@ -10,6 +10,7 @@ module.exports = [
     {
         name: 'phaser-umd',
         mode: 'production',
+        target: ['web', 'es5'],
 
         context: `${__dirname}/../src/`,
 
@@ -56,6 +57,19 @@ module.exports = [
                         warnings: false
                     }
                 })
+            ]
+        },
+
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    loader: 'ts-loader',
+                    options: {
+                        onlyCompileBundledFiles: true
+                    },
+                    exclude: /node_modules/
+                }
             ]
         },
 

@@ -47,7 +47,10 @@ module.exports = [
                         format: {
                             comments: false
                         },
-                        compress: true,
+                        compress: {
+                            passes: 2,
+                            drop_console: true
+                        },
                         ie8: false,
                         ecma: 5,
                         warnings: false

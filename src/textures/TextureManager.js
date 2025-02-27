@@ -1,6 +1,6 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -366,6 +366,11 @@ var TextureManager = new Class({
             {
                 var texture = _this.create(key, image);
 
+                if (!texture)
+                {
+                    return;
+                }
+                
                 Parser.Image(texture, 0);
 
                 _this.emit(Events.ADD, key, texture);

@@ -1,7 +1,7 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
  * @author       Pavle Goloskokovic <pgoloskokovic@gmail.com> (http://prunegames.com)
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -92,6 +92,34 @@ var WebAudioSoundManager = new Class({
                 game.events.once(GameEvents.BOOT, this.unlock, this);
             }
         }
+
+        game.events.on(GameEvents.VISIBLE, this.onGameVisible, this);
+    },
+
+    /**
+     * Internal handler for Phaser.Core.Events#VISIBLE.
+     * 
+     * Needed to handle resuming audio on iOS17/iOS18+ if you hide the browser, press
+     * the home button, etc. See https://github.com/phaserjs/phaser/issues/6829
+     *
+     * @method Phaser.Sound.WebAudioSoundManager#onGameVisible
+     * @private
+     * @since 3.88.0
+     */
+    onGameVisible: function ()
+    {
+        var context = this.context;
+
+        //  setTimeout to avoid weird audio artifacts (thanks Apple)
+        window.setTimeout(function () {
+
+            if (context)
+            {
+                context.suspend();
+                context.resume();
+            }
+
+        }, 100);
     },
 
     /**
@@ -453,6 +481,8 @@ var WebAudioSoundManager = new Class({
                 _this.context = null;
             });
         }
+
+        this.game.events.off(GameEvents.VISIBLE, this.onGameVisible, this);
 
         BaseSoundManager.prototype.destroy.call(this);
     },

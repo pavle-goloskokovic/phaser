@@ -1,6 +1,6 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -707,7 +707,8 @@ var TransformMatrix = new Class({
      */
     setToContext: function (ctx)
     {
-        ctx.setTransform(this);
+        // using old way for old browser compatibility #6965
+        ctx.setTransform(this.a, this.b, this.c, this.d, this.e, this.f);
 
         return ctx;
     },

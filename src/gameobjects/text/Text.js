@@ -1,6 +1,6 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -305,6 +305,11 @@ var Text = new Class({
         {
             this.setLineSpacing(style.lineSpacing);
         }
+
+        if (style && style.letterSpacing)
+        {
+            this.setLetterSpacing(style.letterSpacing);
+        }
     },
 
     /**
@@ -417,7 +422,8 @@ var Text = new Class({
             line = line.replace(/^ *|\s*$/gi, '');
 
             // If entire line is less than wordWrapWidth append the entire line and exit early
-            var lineWidth = context.measureText(line).width;
+            var lineLetterSpacingWidth = line.length * this.letterSpacing;
+            var lineWidth = context.measureText(line).width + lineLetterSpacingWidth;
 
             if (lineWidth < wordWrapWidth)
             {
@@ -435,8 +441,9 @@ var Text = new Class({
             {
                 var word = words[j];
                 var wordWithSpace = word + ' ';
-                var wordWidth = context.measureText(wordWithSpace).width;
-
+                var letterSpacingWidth = wordWithSpace.length * this.letterSpacing;
+                var wordWidth = context.measureText(wordWithSpace).width + letterSpacingWidth;
+                console.log(words.length, word);
                 if (wordWidth > currentLineWidth)
                 {
                     // Break word
@@ -448,7 +455,8 @@ var Text = new Class({
                         while (newWord.length)
                         {
                             newWord = newWord.slice(0, -1);
-                            wordWidth = context.measureText(newWord).width;
+                            var newLetterSpacingWidth = newWord.length * this.letterSpacing;
+                            wordWidth = context.measureText(newWord).width + newLetterSpacingWidth;
 
                             if (wordWidth <= currentLineWidth)
                             {
@@ -482,7 +490,6 @@ var Text = new Class({
                     lines.splice(i + 1, 0, remainder);
 
                     linesCount = lines.length;
-
                     break; // Processing on this line
 
                     // Append word with space to output
@@ -533,7 +540,8 @@ var Text = new Class({
             for (var j = 0; j <= lastWordIndex; j++)
             {
                 var word = words[j];
-                var wordWidth = context.measureText(word).width;
+                var letterSpacingWidth = word.length * this.letterSpacing;
+                var wordWidth = context.measureText(word).width + letterSpacingWidth;
                 var wordWidthWithSpace = wordWidth;
 
                 if (j < lastWordIndex)

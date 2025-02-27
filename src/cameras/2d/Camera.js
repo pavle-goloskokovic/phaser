@@ -1,6 +1,6 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -481,10 +481,9 @@ var Camera = new Class({
     },
 
     /**
-     * Internal preRender step.
+     * Updates camera matrix. Also resets any active effects on this Camera (such as shake, flash and fade) and quickly clears them all.
      *
      * @method Phaser.Cameras.Scene2D.Camera#preRender
-     * @protected
      * @since 3.0.0
      */
     preRender: function ()

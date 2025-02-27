@@ -1,6 +1,6 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2025 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -1207,9 +1207,6 @@ var ScaleManager = new Class({
         var style = canvas.style;
 
         var bounds = canvas.getBoundingClientRect();
-
-        // var width = parseInt(canvas.style.width, 10) || canvas.width;
-        // var height = parseInt(canvas.style.height, 10) || canvas.height;
 
         var width = bounds.width;
         var height = bounds.height;

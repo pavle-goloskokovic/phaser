@@ -10971,9 +10971,19 @@ var CreateRenderer = function (game) {
         WebGLRenderer = __webpack_require__(72355);
         //  Let the config pick the renderer type, as both are included
         if (config.renderType === CONST.WEBGL) {
-            game.renderer = new WebGLRenderer(game);
+            try {
+                game.renderer = new WebGLRenderer(game);
+            }
+            catch (e) {
+                e.message += '. Falling back to CanvasRenderer';
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: e
+                }));
+                //  Force the type to Canvas, since WebGL is unsupported
+                config.renderType = CONST.CANVAS;
+            }
         }
-        else {
+        if (config.renderType === CONST.CANVAS) {
             game.renderer = new CanvasRenderer(game);
             game.context = game.renderer.gameContext;
         }

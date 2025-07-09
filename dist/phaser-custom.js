@@ -667,7 +667,7 @@ var Animation = new Class({
     getFirstTick: function (state) {
         //  When is the first update due?
         state.accumulator = 0;
-        state.nextTick = state.msPerFrame || state.currentFrame.duration;
+        state.nextTick = state.frameRate === state.currentAnim.frameRate ? state.currentFrame.duration || state.msPerFrame : state.msPerFrame;
     },
     /**
      * Returns the AnimationFrame at the provided index
@@ -773,7 +773,7 @@ var Animation = new Class({
      */
     getNextTick: function (state) {
         state.accumulator -= state.nextTick;
-        state.nextTick = state.msPerFrame || state.currentFrame.duration;
+        state.nextTick = state.frameRate === state.currentAnim.frameRate ? state.currentFrame.duration || state.msPerFrame : state.msPerFrame;
     },
     /**
      * Returns the frame closest to the given progress value between 0 and 1.
@@ -10251,7 +10251,7 @@ var CONST = {
      * @type {string}
      * @since 3.0.0
      */
-    VERSION: '3.88.2',
+    VERSION: '3.90.0',
     /**
      * Phaser Release Version as displayed in the console.log header URL.
      *
@@ -10260,7 +10260,7 @@ var CONST = {
      * @type {string}
      * @since 3.87.0
      */
-    LOG_VERSION: 'v388',
+    LOG_VERSION: 'v390',
     BlendModes: __webpack_require__(31478),
     ScaleModes: __webpack_require__(48713),
     /**
@@ -20507,7 +20507,9 @@ var DisplayList = new Class({
         var list = this.list;
         var i = list.length;
         while (i--) {
-            list[i].destroy(true);
+            if (list[i]) {
+                list[i].destroy(true);
+            }
         }
         list.length = 0;
         this.events.off(SceneEvents.SHUTDOWN, this.shutdown, this);
@@ -21179,7 +21181,7 @@ var GameObject = new Class({
      * every game frame. This method is passed two parameters: `delta` and `time`.
      *
      * If you wish to run your own logic within `preUpdate` then you should always call
-     * `super.preUpdate(delta, time)` within it, or it may fail to process required operations,
+     * `super.preUpdate(time, delta)` within it, or it may fail to process required operations,
      * such as Sprite animations.
      *
      * @method Phaser.GameObjects.GameObject#addToUpdateList
@@ -23114,7 +23116,7 @@ var FX = new Class({
      * @generic {Phaser.FX.Controller} T
      * @genericUse {T} - [fx]
      *
-     * @param {Phaser.FX.Controller} fx - The FX Controller to remove from this FX Component.
+     * @param {Phaser.FX.Controller|Phaser.Display.ColorMatrix} fx - The FX Controller to remove from this FX Component.
      *
      * @return {this} This Game Object instance.
      */
@@ -32654,6 +32656,8 @@ var Text = new Class({
      */
     initRTL: function () {
         if (!this.style.rtl) {
+            this.canvas.dir = 'ltr';
+            this.context.direction = 'ltr';
             return;
         }
         //  Here is where the crazy starts.
@@ -32744,7 +32748,6 @@ var Text = new Class({
                 var wordWithSpace = word + ' ';
                 var letterSpacingWidth = wordWithSpace.length * this.letterSpacing;
                 var wordWidth = context.measureText(wordWithSpace).width + letterSpacingWidth;
-                console.log(words.length, word);
                 if (wordWidth > currentLineWidth) {
                     // Break word
                     if (j === 0) {
@@ -38624,7 +38627,7 @@ var InputManager = new Class({
     initialize: function InputManager(game, config) {
         /**
          * The Game instance that owns the Input Manager.
-         * A Game only maintains on instance of the Input Manager at any time.
+         * A Game only maintains one instance of the Input Manager at any time.
          *
          * @name Phaser.Input.InputManager#game
          * @type {Phaser.Game}
@@ -40223,7 +40226,7 @@ var InputPlugin = new Class({
             dropZone = false;
         }
         if (gameObject.input) {
-            //  If it is already has an InteractiveObject then just enable it and return
+            //  If it already has an InteractiveObject then just enable it and return
             gameObject.input.enabled = true;
         }
         else {
@@ -52306,11 +52309,11 @@ var LoaderPlugin = new Class({
      *
      * The file must be an instance of `Phaser.Loader.File`, or a class that extends it. The Loader will check that the key
      * used by the file won't conflict with any other key either in the loader, the inflight queue or the target cache.
-     * If allowed it will then add the file into the pending list, read for the load to start. Or, if the load has already
+     * If allowed it will then add the file into the pending list, ready for the load to start. Or, if the load has already
      * started, ready for the next batch of files to be pulled from the list to the inflight queue.
      *
-     * You should not normally call this method directly, but rather use one of the Loader methods like `image` or `atlas`,
-     * however you can call this as long as the file given to it is well formed.
+     * You should not normally call this method directly, but rather use one of the Loader methods like `image` or `atlas`.
+     * However you can call this as long as the file given to it is well formed.
      *
      * @method Phaser.Loader.LoaderPlugin#addFile
      * @fires Phaser.Loader.Events#ADD
@@ -52385,7 +52388,7 @@ var LoaderPlugin = new Class({
      * @method Phaser.Loader.LoaderPlugin#addPack
      * @since 3.7.0
      *
-     * @param {any} pack - The Pack File data to be parsed and each entry of it to added to the load queue.
+     * @param {any} pack - The Pack File data to be parsed and have each entry in it added to the load queue.
      * @param {string} [packKey] - An optional key to use from the pack file data.
      *
      * @return {boolean} `true` if any files were added to the queue, otherwise `false`.
@@ -52706,7 +52709,7 @@ var LoaderPlugin = new Class({
      *
      * If the process was successful, and the File isn't part of a MultiFile, its `addToCache` method is called.
      *
-     * It this then removed from the queue. If there are no more files to load `loadComplete` is called.
+     * It is then removed from the queue. If there are no more files to load `loadComplete` is called.
      *
      * @method Phaser.Loader.LoaderPlugin#fileProcessComplete
      * @since 3.7.0
@@ -53214,9 +53217,19 @@ var XHRLoader = function (file, globalXHRSettings) {
     var config = MergeXHRSettings(globalXHRSettings, file.xhrSettings);
     if (file.base64) {
         var base64Data = file.url.split(';base64,').pop() || file.url.split(',').pop();
-        var fakeXHR = {
-            responseText: atob(base64Data)
-        };
+        var fakeXHR;
+        if (file.xhrSettings.responseType === 'arraybuffer') {
+            fakeXHR = {
+                response: Uint8Array.from(atob(base64Data), function (c) {
+                    return c.charCodeAt(0);
+                }).buffer
+            };
+        }
+        else {
+            fakeXHR = {
+                responseText: atob(base64Data)
+            };
+        }
         file.onBase64Load(fakeXHR);
         return;
     }
@@ -62681,6 +62694,99 @@ module.exports = CounterClockwise;
 
 /***/ }),
 
+/***/ 53073:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * @author       samme
+ * @copyright    2025 Phaser Studio Inc.
+ * @license      {@link https://opensource.org/licenses/MIT|MIT License}
+ */
+var NormalizeAngle = __webpack_require__(48205);
+/**
+ * Gets the shortest nonnegative angular distance from angle1 to angle2.
+ *
+ * @function Phaser.Math.Angle.GetClockwiseDistance
+ * @since 4.0.0
+ *
+ * @param {number} angle1 - The starting angle in radians.
+ * @param {number} angle2 - The target angle in radians.
+ *
+ * @return {number} The distance in radians, in the range [0, 2pi).
+ */
+var GetClockwiseDistance = function (angle1, angle2) {
+    return NormalizeAngle(angle2 - angle1);
+};
+module.exports = GetClockwiseDistance;
+
+
+/***/ }),
+
+/***/ 41131:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * @author       samme
+ * @copyright    2025 Phaser Studio Inc.
+ * @license      {@link https://opensource.org/licenses/MIT|MIT License}
+ */
+var NormalizeAngle = __webpack_require__(48205);
+var TAU = 2 * Math.PI;
+/**
+ * Gets the shortest nonpositive angular distance from angle1 to angle2.
+ *
+ * @function Phaser.Math.Angle.GetCounterClockwiseDistance
+ * @since 4.0.0
+ *
+ * @param {number} angle1 - The starting angle in radians.
+ * @param {number} angle2 - The target angle in radians.
+ *
+ * @return {number} The distance in radians, in the range (-2pi, 0].
+ */
+var GetCounterClockwiseDistance = function (angle1, angle2) {
+    var distance = NormalizeAngle(angle2 - angle1);
+    if (distance > 0) {
+        distance -= TAU;
+    }
+    return distance;
+};
+module.exports = GetCounterClockwiseDistance;
+
+
+/***/ }),
+
+/***/ 53851:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * @author       samme
+ * @copyright    2025 Phaser Studio Inc.
+ * @license      {@link https://opensource.org/licenses/MIT|MIT License}
+ */
+var WrapAngle = __webpack_require__(31916);
+/**
+ * Gets the shortest signed angular distance from angle1 to angle2.
+ * A positive distance is a clockwise rotation.
+ * A negative distance is a counter-clockwise rotation.
+ *
+ * For calculation in degrees use {@link Phaser.Math.Angle.ShortestBetween} instead.
+ *
+ * @function Phaser.Math.Angle.GetShortestDistance
+ * @since 4.0.0
+ *
+ * @param {number} angle1 - The first angle in radians.
+ * @param {number} angle2 - The second angle in radians.
+ *
+ * @return {number} The distance in radians, in the range [-pi, pi).
+ */
+var GetShortestDistance = function (angle1, angle2) {
+    return WrapAngle(angle2 - angle1);
+};
+module.exports = GetShortestDistance;
+
+
+/***/ }),
+
 /***/ 48205:
 /***/ (function(module) {
 
@@ -62865,6 +62971,8 @@ module.exports = RotateTo;
  * greater than 0 then it's a counter-clockwise rotation, if < 0 then it's
  * a clockwise rotation.
  *
+ * For calculation in radians use {@link Phaser.Math.Angle.GetShortestDistance} instead.
+ *
  * @function Phaser.Math.Angle.ShortestBetween
  * @since 3.0.0
  *
@@ -62961,6 +63069,9 @@ module.exports = {
     BetweenPointsY: __webpack_require__(58634),
     BetweenY: __webpack_require__(35543),
     CounterClockwise: __webpack_require__(24618),
+    GetClockwiseDistance: __webpack_require__(53073),
+    GetCounterClockwiseDistance: __webpack_require__(41131),
+    GetShortestDistance: __webpack_require__(53851),
     Normalize: __webpack_require__(48205),
     Random: __webpack_require__(37727),
     RandomDegrees: __webpack_require__(22338),
@@ -73276,7 +73387,7 @@ var WebGLRenderer = new Class({
          */
         this.currentBlendMode = Infinity;
         /**
-         * Indicates if the the scissor state is enabled in WebGLRenderingContext
+         * Indicates if the scissor state is enabled in WebGLRenderingContext
          *
          * @name Phaser.Renderer.WebGL.WebGLRenderer#currentScissorEnabled
          * @type {boolean}
@@ -85192,6 +85303,7 @@ module.exports = Wrappers;
  */
 var CONST = __webpack_require__(55686);
 var Class = __webpack_require__(49089);
+var Clamp = __webpack_require__(90429);
 var EventEmitter = __webpack_require__(50792);
 var Events = __webpack_require__(37374);
 var GameEvents = __webpack_require__(2849);
@@ -86066,11 +86178,37 @@ var ScaleManager = new Class({
             this.canvas.height = styleHeight;
         }
         else if (this.scaleMode === CONST.SCALE_MODE.EXPAND) {
+            // Expand canvas size to fit game size's width or height
             var baseWidth = this.game.config.width;
             var baseHeight = this.game.config.height;
+            var windowWidth = this.parentSize.width;
+            var windowHeight = this.parentSize.height;
+            var scaleX = windowWidth / baseWidth;
+            var scaleY = windowHeight / baseHeight;
+            var canvasWidth;
+            var canvasHeight;
+            if (scaleX < scaleY) {
+                canvasWidth = baseWidth;
+                canvasHeight = (scaleX !== 0) ? windowHeight / scaleX : baseHeight;
+            }
+            else {
+                canvasWidth = (scaleY !== 0) ? windowWidth / scaleY : baseWidth;
+                canvasHeight = baseHeight;
+            }
+            var clampedCanvasWidth = Clamp(canvasWidth, this.displaySize.minWidth, this.displaySize.maxWidth);
+            var clampedCanvasHeight = Clamp(canvasHeight, this.displaySize.minHeight, this.displaySize.maxHeight);
+            this.baseSize.setSize(clampedCanvasWidth, clampedCanvasHeight);
+            this.gameSize.setSize(clampedCanvasWidth, clampedCanvasHeight);
+            if (autoRound) {
+                clampedCanvasWidth = Math.floor(clampedCanvasWidth);
+                clampedCanvasHeight = Math.floor(clampedCanvasHeight);
+            }
+            this.canvas.width = clampedCanvasWidth;
+            this.canvas.height = clampedCanvasHeight;
             //  Resize to match parent, like RESIZE mode
-            //  This will constrain using min/max
-            this.displaySize.setSize(this.parentSize.width, this.parentSize.height);
+            var clampedWindowWidth = windowWidth * (clampedCanvasWidth / canvasWidth);
+            var clampedWindowHeight = windowHeight * (clampedCanvasHeight / canvasHeight);
+            this.displaySize.setSize(clampedWindowWidth, clampedWindowHeight);
             styleWidth = this.displaySize.width;
             styleHeight = this.displaySize.height;
             if (autoRound) {
@@ -86079,24 +86217,6 @@ var ScaleManager = new Class({
             }
             style.width = styleWidth + 'px';
             style.height = styleHeight + 'px';
-            // Expand canvas size to fit game size's width or height
-            var scaleX = this.parentSize.width / baseWidth;
-            var scaleY = this.parentSize.height / baseHeight;
-            if (scaleX < scaleY && scaleX !== 0) {
-                this.baseSize.setSize(baseWidth, this.parentSize.height / scaleX);
-            }
-            else if (scaleY !== 0) {
-                this.baseSize.setSize(this.displaySize.width / scaleY, baseHeight);
-            }
-            this.gameSize.setSize(this.baseSize.width, this.baseSize.height);
-            styleWidth = this.baseSize.width;
-            styleHeight = this.baseSize.height;
-            if (autoRound) {
-                styleWidth = Math.floor(styleWidth);
-                styleHeight = Math.floor(styleHeight);
-            }
-            this.canvas.width = styleWidth;
-            this.canvas.height = styleHeight;
         }
         else {
             //  All other scale modes
@@ -96675,15 +96795,27 @@ var WebAudioSoundManager = new Class({
      */
     update: function (time, delta) {
         var listener = this.context.listener;
+        var x = GetFastValue(this.listenerPosition, 'x', null);
+        var y = GetFastValue(this.listenerPosition, 'y', null);
         if (listener && listener.positionX !== undefined) {
-            var x = GetFastValue(this.listenerPosition, 'x', null);
-            var y = GetFastValue(this.listenerPosition, 'y', null);
             if (x && x !== this._spatialx) {
                 this._spatialx = listener.positionX.value = x;
             }
             if (y && y !== this._spatialy) {
                 this._spatialy = listener.positionY.value = y;
             }
+        }
+        // Firefox doesn't currently implement positionX, positionY and positionZ properties on AudioListener,
+        // falling back on AudioListener.prototype.setPosition() method. @see https://developer.mozilla.org/en-US/docs/Web/API/AudioListener/setPosition
+        else if (listener) {
+            if (x && x !== this._spatialx) {
+                this._spatialx = x;
+            }
+            if (y && y !== this._spatialy) {
+                this._spatialy = y;
+            }
+            var z = GetFastValue(listener, 'z', 0);
+            listener.setPosition(this._spatialx || 0, this._spatialy || 0, z);
         }
         BaseSoundManager.prototype.update.call(this, time, delta);
         //  Resume interrupted audio on iOS only if the game has focus
@@ -111646,7 +111778,7 @@ var Tween = new Class({
      *
      * @param {number} [index=0] - The Tween Data to return the value from.
      *
-     * @return {number} The value of the requested Tween Data, or `null` if this Tween has been destroyed.
+     * @return {number|null} The value of the requested Tween Data, or `null` if this Tween has been destroyed.
      */
     getValue: function (index) {
         if (index === undefined) {
@@ -112446,6 +112578,10 @@ var TweenChain = new Class({
      */
     update: function (delta) {
         if (this.isPendingRemove() || this.isDestroyed()) {
+            if (this.persist) {
+                this.setFinishedState();
+                return false;
+            }
             return true;
         }
         else if (this.isFinished() || this.paused) {

@@ -12484,6 +12484,15 @@ declare namespace Phaser {
             setMaxWidth(value: number, wordWrapCharCode?: number): this;
 
             /**
+             * Sets the display size of this BitmapText Game Object.
+             * 
+             * Calling this will adjust the scale.
+             * @param width The width of this BitmapText Game Object.
+             * @param height The height of this BitmapText Game Object.
+             */
+            setDisplaySize(width: number, height: number): this;
+
+            /**
              * Controls the alignment of each line of text in this BitmapText object.
              * 
              * Only has any effect when this BitmapText contains multiple lines of text, split with carriage-returns.
@@ -20265,7 +20274,7 @@ declare namespace Phaser {
              * every game frame. This method is passed two parameters: `delta` and `time`.
              * 
              * If you wish to run your own logic within `preUpdate` then you should always call
-             * `super.preUpdate(delta, time)` within it, or it may fail to process required operations,
+             * `super.preUpdate(time, delta)` within it, or it may fail to process required operations,
              * such as Sprite animations.
              */
             addToUpdateList(): this;
@@ -46006,6 +46015,16 @@ declare namespace Phaser {
             constructor(scene: Phaser.Scene, x: number, y: number, width?: number, height?: number, fillColor?: number, fillAlpha?: number);
 
             /**
+             * Sets this rectangle to have rounded corners by specifying the radius of the corner.
+             * 
+             * The radius of the rounded corners is limited by the smallest dimension of the rectangle.
+             * 
+             * To disable rounded corners, set the `radius` parameter to 0.
+             * @param radius The radius of all four rounded corners. Default 16.
+             */
+            setRounded(radius?: number): this;
+
+            /**
              * Sets the internal size of this Rectangle, as used for frame or physics body creation.
              * 
              * If you have assigned a custom input hit area for this Rectangle, changing the Rectangle size will _not_ change the
@@ -46847,6 +46866,22 @@ declare namespace Phaser {
              * @param data The data of the source shape geometry, if any.
              */
             constructor(scene: Phaser.Scene, type?: string, data?: any);
+
+            /**
+             * The radius of the rectangle if this is set to use rounded corners.
+             * 
+             * Do not modify this property. Instead, call the method `setRounded` to set the
+             * radius of the rounded corners.
+             */
+            readonly radius: number;
+
+            /**
+             * Does this Rectangle have rounded corners?
+             * 
+             * Do not modify this property. Instead, call the method `setRounded` to set the
+             * radius state of this rectangle.
+             */
+            readonly isRounded: boolean;
 
             /**
              * The source Shape data. Typically a geometry object.
@@ -61243,7 +61278,7 @@ declare namespace Phaser {
 
             /**
              * The Game instance that owns the Input Manager.
-             * A Game only maintains on instance of the Input Manager at any time.
+             * A Game only maintains one instance of the Input Manager at any time.
              */
             readonly game: Phaser.Game;
 
@@ -68699,11 +68734,11 @@ declare namespace Phaser {
              * 
              * The file must be an instance of `Phaser.Loader.File`, or a class that extends it. The Loader will check that the key
              * used by the file won't conflict with any other key either in the loader, the inflight queue or the target cache.
-             * If allowed it will then add the file into the pending list, read for the load to start. Or, if the load has already
+             * If allowed it will then add the file into the pending list, ready for the load to start. Or, if the load has already
              * started, ready for the next batch of files to be pulled from the list to the inflight queue.
              * 
-             * You should not normally call this method directly, but rather use one of the Loader methods like `image` or `atlas`,
-             * however you can call this as long as the file given to it is well formed.
+             * You should not normally call this method directly, but rather use one of the Loader methods like `image` or `atlas`.
+             * However you can call this as long as the file given to it is well formed.
              * @param file The file, or array of files, to be added to the load queue.
              */
             addFile(file: Phaser.Loader.File | Phaser.Loader.File[]): void;
@@ -68723,7 +68758,7 @@ declare namespace Phaser {
              * You can also provide an optional key. If you do then it will only add the entries from that part of the pack into
              * to the load queue. If not specified it will add all entries it finds. For more details about the pack file format
              * see the `LoaderPlugin.pack` method.
-             * @param pack The Pack File data to be parsed and each entry of it to added to the load queue.
+             * @param pack The Pack File data to be parsed and have each entry in it added to the load queue.
              * @param packKey An optional key to use from the pack file data.
              */
             addPack(pack: any, packKey?: string): boolean;
@@ -68789,7 +68824,7 @@ declare namespace Phaser {
              * 
              * If the process was successful, and the File isn't part of a MultiFile, its `addToCache` method is called.
              * 
-             * It this then removed from the queue. If there are no more files to load `loadComplete` is called.
+             * It is then removed from the queue. If there are no more files to load `loadComplete` is called.
              * @param file The file that has finished processing.
              */
             fileProcessComplete(file: Phaser.Loader.File): void;
@@ -69047,6 +69082,31 @@ declare namespace Phaser {
             function CounterClockwise(angle: number): number;
 
             /**
+             * Gets the shortest nonnegative angular distance from angle1 to angle2.
+             * @param angle1 The starting angle in radians.
+             * @param angle2 The target angle in radians.
+             */
+            function GetClockwiseDistance(angle1: number, angle2: number): number;
+
+            /**
+             * Gets the shortest nonpositive angular distance from angle1 to angle2.
+             * @param angle1 The starting angle in radians.
+             * @param angle2 The target angle in radians.
+             */
+            function GetCounterClockwiseDistance(angle1: number, angle2: number): number;
+
+            /**
+             * Gets the shortest signed angular distance from angle1 to angle2.
+             * A positive distance is a clockwise rotation.
+             * A negative distance is a counter-clockwise rotation.
+             * 
+             * For calculation in degrees use {@link Phaser.Math.Angle.ShortestBetween} instead.
+             * @param angle1 The first angle in radians.
+             * @param angle2 The second angle in radians.
+             */
+            function GetShortestDistance(angle1: number, angle2: number): number;
+
+            /**
              * Normalize an angle to the [0, 2pi] range.
              * @param angle The angle to normalize, in radians.
              */
@@ -69086,6 +69146,8 @@ declare namespace Phaser {
              * The angle returned will be in the same range. If the returned angle is
              * greater than 0 then it's a counter-clockwise rotation, if < 0 then it's
              * a clockwise rotation.
+             * 
+             * For calculation in radians use {@link Phaser.Math.Angle.GetShortestDistance} instead.
              * @param angle1 The first angle in the range -180 to 180.
              * @param angle2 The second angle in the range -180 to 180.
              */
@@ -82441,7 +82503,7 @@ declare namespace Phaser {
                  * 
                  * If you wish to run the World update at your own rate, or from your own
                  * component, then you should call this method to disable the built-in link,
-                 * and then call `World.update(delta, time)` accordingly.
+                 * and then call `World.update(time, delta)` accordingly.
                  * 
                  * Note that `World.postUpdate` is always automatically called when the Scene
                  * emits a `POST_UPDATE` event, regardless of this setting.
@@ -82470,7 +82532,7 @@ declare namespace Phaser {
                  * @param object1 The first object or array of objects to check.
                  * @param object2 The second object or array of objects to check, or `undefined`.
                  * @param overlapCallback An optional callback function that is called if the objects overlap.
-                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they overlap. If this is set then `collideCallback` will only be called if this callback returns `true`.
+                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they overlap. If this is set then `overlapCallback` will only be called if this callback returns `true`.
                  * @param callbackContext The context in which to run the callbacks.
                  */
                 overlap(object1: Phaser.Types.Physics.Arcade.ArcadeColliderType, object2?: Phaser.Types.Physics.Arcade.ArcadeColliderType, overlapCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, processCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, callbackContext?: any): boolean;
@@ -82537,11 +82599,11 @@ declare namespace Phaser {
                  * you should filter them before passing them to this method.
                  * @param sprite The first object to check for collision.
                  * @param tiles An array of Tiles to check for collision against.
-                 * @param collideCallback An optional callback function that is called if the objects overlap.
-                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they collide. If this is set then `collideCallback` will only be called if this callback returns `true`.
+                 * @param overlapCallback An optional callback function that is called if the objects overlap.
+                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they collide. If this is set then `overlapCallback` will only be called if this callback returns `true`.
                  * @param callbackContext The context in which to run the callbacks.
                  */
-                overlapTiles(sprite: Phaser.GameObjects.GameObject, tiles: Phaser.Tilemaps.Tile[], collideCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, processCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, callbackContext?: any): boolean;
+                overlapTiles(sprite: Phaser.GameObjects.GameObject, tiles: Phaser.Tilemaps.Tile[], overlapCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, processCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, callbackContext?: any): boolean;
 
                 /**
                  * Pauses the simulation.
@@ -87612,11 +87674,11 @@ declare namespace Phaser {
                  * This method does not factor in the Collision Mask or Category.
                  * @param sprite The first object to check for collision.
                  * @param tiles An array of Tiles to check for collision against.
-                 * @param collideCallback An optional callback function that is called if the objects overlap.
-                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they collide. If this is set then `collideCallback` will only be called if this callback returns `true`.
+                 * @param overlapCallback An optional callback function that is called if the objects overlap.
+                 * @param processCallback An optional callback function that lets you perform additional checks against the two objects if they collide. If this is set then `overlapCallback` will only be called if this callback returns `true`.
                  * @param callbackContext The context in which to run the callbacks.
                  */
-                overlapTiles(sprite: Phaser.GameObjects.GameObject, tiles: Phaser.Tilemaps.Tile[], collideCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, processCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, callbackContext?: any): boolean;
+                overlapTiles(sprite: Phaser.GameObjects.GameObject, tiles: Phaser.Tilemaps.Tile[], overlapCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, processCallback?: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, callbackContext?: any): boolean;
 
                 /**
                  * Internal handler for Sprite vs. Tilemap collisions.
@@ -99421,7 +99483,7 @@ declare namespace Phaser {
                 currentBlendMode: number;
 
                 /**
-                 * Indicates if the the scissor state is enabled in WebGLRenderingContext
+                 * Indicates if the scissor state is enabled in WebGLRenderingContext
                  */
                 currentScissorEnabled: boolean;
 
@@ -115797,7 +115859,7 @@ declare namespace Phaser {
              * If this Tween has been destroyed, it will return `null`.
              * @param index The Tween Data to return the value from. Default 0.
              */
-            getValue(index?: number): number;
+            getValue(index?: number): number | null;
 
             /**
              * See if this Tween is currently acting upon the given target.
@@ -116915,11 +116977,12 @@ declare namespace Phaser {
              * 
              * Optionally you can specify a start and end index. For example if the array had 100 elements,
              * and you set `startIndex` to 0 and `endIndex` to 50, it would search only the first 50 elements.
+             * 
              * You can also specify a negative `startIndex`, such as `-1`, which would start the search at the end of the array
              * @param array The array to search.
              * @param property The property to test on each array element.
              * @param value The value to test the property against. Must pass a strict (`===`) comparison check.
-             * @param startIndex An optional start index to search from. You cn also set `startIndex` to -1 to start the search from the end of the array. Default 0.
+             * @param startIndex An optional start index to search from. You can also set `startIndex` to -1 to start the search from the end of the array. Default 0.
              * @param endIndex An optional end index to search up to (but not included) Default array.length.
              */
             function GetFirst(array: any[], property?: string, value?: any, startIndex?: number, endIndex?: number): object | null;
@@ -117364,7 +117427,7 @@ declare namespace Phaser {
              * @param array The array to check.
              * @param startIndex The start index.
              * @param endIndex The end index.
-             * @param throwError Throw an error if the range is out of bounds. Default true.
+             * @param throwError Throw an error if the range is out of bounds. Default false.
              */
             function SafeRange(array: any[], startIndex: number, endIndex: number, throwError?: boolean): boolean;
 

@@ -261,7 +261,7 @@ var File = new Class({
          * @name Phaser.Loader.File#maxRetries
          * @type {number}
          * @default 5
-         * @since 3.88.0
+         * @since 4.3.0
          */
         this.maxRetries = GetFastValue(this.xhrSettings, 'maxRetries', loader.maxRetries);
 
@@ -271,7 +271,7 @@ var File = new Class({
          * @name Phaser.Loader.File#retries
          * @type {number}
          * @default 0
-         * @since 3.88.0
+         * @since 4.3.0
          */
         this.retries = 0;
     },

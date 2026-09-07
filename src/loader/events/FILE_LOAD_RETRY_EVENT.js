@@ -1,7 +1,7 @@
 /**
  * @author       Richard Davey <rich@phaser.io>
  * @author       Pavle Goloskokovic <pgoloskokovic@gmail.com> (http://prunegames.com)
- * @copyright    2013-2024 Phaser Studio Inc.
+ * @copyright    2013-2026 Phaser Studio Inc.
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
@@ -14,7 +14,7 @@
  *
  * @event Phaser.Loader.Events#FILE_LOAD_RETRY
  * @type {string}
- * @since 3.88.0
+ * @since 4.3.0
  *
  * @param {Phaser.Loader.File} file - A reference to the File which errored during load, and is retrying.
  * @param {ProgressEvent} event - The DOM ProgressEvent that resulted from this error.
